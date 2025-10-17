@@ -7,6 +7,7 @@ import org.service.hotel.entity.Room;
 import org.service.hotel.mapper.RoomMapper;
 import org.service.hotel.service.RoomService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class RoomController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Чтение для USER и ADMIN
     public ResponseEntity<List<RoomDTO>> getAllRooms() {
         List<RoomDTO> rooms = roomService.getAllRooms().stream()
                 .map(roomMapper::toDTO)
@@ -33,6 +35,7 @@ public class RoomController {
     }
 
     @GetMapping("/hotel/{hotelId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Чтение для USER и ADMIN
     public ResponseEntity<List<RoomDTO>> getRoomsByHotel(@PathVariable Long hotelId) {
         List<RoomDTO> rooms = roomService.getRoomsByHotelId(hotelId).stream()
                 .map(roomMapper::toDTO)
@@ -41,6 +44,7 @@ public class RoomController {
     }
 
     @GetMapping("/available")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Чтение для USER и ADMIN
     public ResponseEntity<List<RoomDTO>> getAvailableRooms() {
         List<RoomDTO> rooms = roomService.getAvailableRooms().stream()
                 .map(roomMapper::toDTO)
@@ -49,6 +53,7 @@ public class RoomController {
     }
 
     @GetMapping("/recommend")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Чтение для USER и ADMIN
     public ResponseEntity<List<RoomDTO>> getRecommendedRooms() {
         List<RoomDTO> rooms = roomService.getRecommendedRooms().stream()
                 .map(roomMapper::toDTO)
@@ -57,12 +62,14 @@ public class RoomController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Чтение для USER и ADMIN
     public ResponseEntity<RoomDTO> getRoomById(@PathVariable Long id) {
         Room room = roomService.getRoomById(id);
         return ResponseEntity.ok(roomMapper.toDTO(room));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")  // ← Создание только для ADMIN
     public ResponseEntity<RoomDTO> createRoom(@RequestBody CreateRoomRequest request) {
         Room room = roomMapper.toEntity(request);
         Room createdRoom = roomService.createRoom(room);
@@ -70,12 +77,14 @@ public class RoomController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")  // ← Обновление только для ADMIN
     public ResponseEntity<RoomDTO> updateRoom(@PathVariable Long id, @RequestBody CreateRoomRequest request) {
         Room updatedRoom = roomService.updateRoom(id, roomMapper.toEntity(request));
         return ResponseEntity.ok(roomMapper.toDTO(updatedRoom));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")  // ← Удаление только для ADMIN
     public ResponseEntity<Void> deleteRoom(@PathVariable Long id) {
         roomService.deleteRoom(id);
         return ResponseEntity.noContent().build();
@@ -83,13 +92,15 @@ public class RoomController {
 
     // Внутренние эндпоинты для Booking Service
     @PostMapping("/{id}/confirm-availability")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Для бронирований (USER и ADMIN)
     public ResponseEntity<RoomDTO> confirmAvailability(@PathVariable Long id,
                                                        @RequestBody RoomAvailabilityRequest request) {
-        Room room = roomService.confirmAvailability(id);
+        Room room = roomService.confirmAvailability(id, request);  // ← Передать request
         return ResponseEntity.ok(roomMapper.toDTO(room));
     }
 
     @PostMapping("/{id}/release")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Для отмены бронирований (USER и ADMIN)
     public ResponseEntity<RoomDTO> releaseRoom(@PathVariable Long id) {
         Room room = roomService.releaseRoom(id);
         return ResponseEntity.ok(roomMapper.toDTO(room));

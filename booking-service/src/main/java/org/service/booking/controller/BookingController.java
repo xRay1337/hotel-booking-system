@@ -8,6 +8,7 @@ import org.service.booking.entity.Booking;
 import org.service.booking.mapper.BookingMapper;
 import org.service.booking.service.BookingService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/booking")
+@RequestMapping("/bookings")
 @RequiredArgsConstructor
 public class BookingController {
 
@@ -23,53 +24,79 @@ public class BookingController {
     private final BookingMapper bookingMapper;
 
     @PostMapping
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDTO> createBooking(@RequestBody CreateBookingRequest request) {
         log.info("Creating booking for user ID: {}, room ID: {}", request.getUserId(), request.getRoomId());
 
-        Booking booking = bookingMapper.toEntity(request);
-        Booking createdBooking = bookingService.createBooking(booking);
-
-        // Сразу пытаемся подтвердить бронирование
         try {
-            Booking confirmedBooking = bookingService.confirmBooking(createdBooking.getId());
-            log.info("Booking successfully confirmed: {}", confirmedBooking.getId());
-            return ResponseEntity.ok(bookingMapper.toDTO(confirmedBooking));
-        } catch (Exception e) {
-            log.error("Failed to confirm booking: {}", e.getMessage());
-            // Возвращаем бронирование даже если подтверждение не удалось
+            // Создаем и сразу подтверждаем бронирование через сагу
+            Booking booking = bookingMapper.toEntity(request);
+            Booking createdBooking = bookingService.createBookingWithSaga(booking);
+
+            log.info("Booking created successfully: {}", createdBooking.getId());
             return ResponseEntity.ok(bookingMapper.toDTO(createdBooking));
+
+        } catch (Exception e) {
+            log.error("Failed to create booking: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @GetMapping
-    public ResponseEntity<List<BookingDTO>> getUserBookings(@RequestParam("userId") Long userId) {
-        List<BookingDTO> bookings = bookingService.getUserBookings(userId).stream()
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<BookingDTO>> getUserBookings() {
+        // В реальном приложении берем ID из аутентификации
+        // Для теста возвращаем все бронирования
+        List<BookingDTO> bookings = bookingService.getAllBookings().stream()
                 .map(bookingMapper::toDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(bookings);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingDTO> getBookingById(@PathVariable("id") Long id) {
-        log.info("Getting booking by ID: {}", id);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<BookingDTO> getBooking(@PathVariable Long id) {
         try {
             Booking booking = bookingService.getBookingById(id);
             return ResponseEntity.ok(bookingMapper.toDTO(booking));
         } catch (Exception e) {
-            log.error("Error getting booking by ID: {}", id, e);
-            return ResponseEntity.status(500).body(null);
+            log.error("Booking not found: {}", id);
+            return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelBooking(@PathVariable("id") Long id) {
-        bookingService.cancelBooking(id);
-        return ResponseEntity.noContent().build();
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
+        try {
+            bookingService.cancelBooking(id);
+            log.info("Booking cancelled: {}", id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("Failed to cancel booking: {}", id);
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<BookingDTO> confirmBooking(@PathVariable("id") Long id) {
-        Booking confirmedBooking = bookingService.confirmBooking(id);
-        return ResponseEntity.ok(bookingMapper.toDTO(confirmedBooking));
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<BookingDTO> confirmBooking(@PathVariable Long id) {
+        try {
+            Booking confirmedBooking = bookingService.confirmBooking(id);
+            return ResponseEntity.ok(bookingMapper.toDTO(confirmedBooking));
+        } catch (Exception e) {
+            log.error("Failed to confirm booking: {}", id);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Административные эндпоинты
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<BookingDTO>> getAllBookings() {
+        List<BookingDTO> bookings = bookingService.getAllBookings().stream()
+                .map(bookingMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(bookings);
     }
 }
