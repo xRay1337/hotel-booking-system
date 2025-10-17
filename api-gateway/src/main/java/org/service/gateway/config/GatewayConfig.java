@@ -11,25 +11,17 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Hotel Service API v1
-                .route("hotel-service-v1", r -> r
-                        .path("/api/v1/hotels/**", "/api/v1/rooms/**")
-                        .filters(f -> f
-                                .addRequestHeader("X-API-Version", "v1")
-                                .addResponseHeader("X-API-Version", "v1")
-                        )
+                // Hotel Service routes - пути как в HotelController
+                .route("hotel-service", r -> r
+                        .path("/hotels/**")
                         .uri("lb://HOTEL-SERVICE"))
 
-                // Booking Service API v1
-                .route("booking-service-v1", r -> r
-                        .path("/api/v1/bookings/**", "/api/v1/users/**")
-                        .filters(f -> f
-                                .addRequestHeader("X-API-Version", "v1")
-                                .addResponseHeader("X-API-Version", "v1")
-                        )
+                // Booking Service routes - пути как в BookingController
+                .route("booking-service", r -> r
+                        .path("/bookings/**")
                         .uri("lb://BOOKING-SERVICE"))
 
-                // Public auth endpoints
+                // Public auth endpoints - пути как в UserController
                 .route("booking-auth", r -> r
                         .path("/user/**")
                         .uri("lb://BOOKING-SERVICE"))

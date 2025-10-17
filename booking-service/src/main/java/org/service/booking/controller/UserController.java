@@ -6,6 +6,7 @@ import org.service.booking.dto.AuthResponse;
 import org.service.booking.dto.UserDTO;
 import org.service.booking.entity.User;
 import org.service.booking.service.UserService;
+import org.service.booking.mapper.UserMapper; // Добавлен импорт маппера
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -13,11 +14,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")  // Обратите внимание - /user, а не /api/v1/users
+@RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     // Публичные эндпоинты (без аутентификации)
     @PostMapping("/register")
@@ -44,7 +46,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
-        UserDTO userDTO = userMapper.toDTO(user);  // ← Преобразуйте entity в DTO
+        UserDTO userDTO = userMapper.toDTO(user); // Теперь маппер доступен
         return ResponseEntity.ok(userDTO);
     }
 

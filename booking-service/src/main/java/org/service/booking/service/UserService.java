@@ -73,13 +73,11 @@ public class UserService {
         userRepository.delete(user);
     }
 
+
     public AuthResponse register(AuthRequest request) {
         // Проверяем, не существует ли пользователь
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists: " + request.getUsername());
-        }
-        if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists: " + request.getEmail());
         }
 
         // Создаем нового пользователя
@@ -87,7 +85,7 @@ public class UserService {
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
-                .role(request.getRole() != null ? request.getRole() : "USER") // По умолчанию USER
+                .role("USER")
                 .build();
 
         User savedUser = userRepository.save(user);

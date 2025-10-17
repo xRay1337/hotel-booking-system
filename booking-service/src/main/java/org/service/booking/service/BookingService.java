@@ -6,9 +6,9 @@ import org.service.booking.client.HotelServiceClient;
 import org.service.booking.dto.RoomAvailabilityRequest;
 import org.service.booking.dto.BookingDTO;
 import org.service.booking.dto.BookingRequest;
-import org.service.booking.dto.UserDTO;
 import org.service.booking.entity.Booking;
 import org.service.booking.entity.User;
+import org.service.booking.mapper.BookingMapper;
 import org.service.booking.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +26,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserService userService;
     private final HotelServiceClient hotelServiceClient;
+    private final BookingMapper bookingMapper;
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
@@ -61,7 +62,7 @@ public class BookingService {
                     .build();
 
             Booking savedBooking = bookingRepository.save(booking);
-            return bookingMapper.toDTO(savedBooking);
+            return bookingMapper.toDTO(savedBooking); // Теперь маппер доступен
 
         } catch (Exception e) {
             log.error("Error creating booking", e);
@@ -139,7 +140,7 @@ public class BookingService {
                 bookingRequest.getUser().getId(), bookingRequest.getRoomId());
 
         // Шаг 1: Создаем бронирование в статусе PENDING
-        Booking pendingBooking = createBooking(bookingRequest);
+        Booking pendingBooking = createBookingEntity(bookingRequest); // Используем новый метод
 
         // Шаг 2: Пытаемся подтвердить бронирование
         try {
@@ -151,6 +152,23 @@ public class BookingService {
             // Бронирование уже отменено в методе confirmBooking
             throw new RuntimeException("Booking failed: " + e.getMessage());
         }
+    }
+
+    /**
+     * Вспомогательный метод для создания сущности Booking (без DTO)
+     */
+    private Booking createBookingEntity(Booking bookingRequest) {
+        Booking booking = Booking.builder()
+                .user(bookingRequest.getUser())
+                .roomId(bookingRequest.getRoomId())
+                .startDate(bookingRequest.getStartDate())
+                .endDate(bookingRequest.getEndDate())
+                .status(Booking.BookingStatus.PENDING)
+                .correlationId(UUID.randomUUID().toString())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        return bookingRepository.save(booking);
     }
 
     /**

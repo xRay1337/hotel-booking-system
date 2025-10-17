@@ -7,11 +7,14 @@ import org.service.booking.dto.CreateBookingRequest;
 import org.service.booking.entity.Booking;
 import org.service.booking.mapper.BookingMapper;
 import org.service.booking.service.BookingService;
+import org.service.booking.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,6 +25,7 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final BookingMapper bookingMapper;
+    private final UserService userService; // Добавляем UserService
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")
@@ -29,8 +33,17 @@ public class BookingController {
         log.info("Creating booking for user ID: {}, room ID: {}", request.getUserId(), request.getRoomId());
 
         try {
-            // Создаем и сразу подтверждаем бронирование через сагу
-            Booking booking = bookingMapper.toEntity(request);
+            // Ручное создание Booking из CreateBookingRequest
+            Booking booking = Booking.builder()
+                    .user(userService.getUserById(request.getUserId())) // Получаем User entity
+                    .roomId(request.getRoomId())
+                    .startDate(request.getStartDate())
+                    .endDate(request.getEndDate())
+                    .status(Booking.BookingStatus.PENDING)
+                    .correlationId(UUID.randomUUID().toString())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
             Booking createdBooking = bookingService.createBookingWithSaga(booking);
 
             log.info("Booking created successfully: {}", createdBooking.getId());
@@ -42,11 +55,10 @@ public class BookingController {
         }
     }
 
+    // Остальные методы без изменений...
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<BookingDTO>> getUserBookings() {
-        // В реальном приложении берем ID из аутентификации
-        // Для теста возвращаем все бронирования
         List<BookingDTO> bookings = bookingService.getAllBookings().stream()
                 .map(bookingMapper::toDTO)
                 .collect(Collectors.toList());
@@ -90,7 +102,6 @@ public class BookingController {
         }
     }
 
-    // Административные эндпоинты
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<BookingDTO>> getAllBookings() {
