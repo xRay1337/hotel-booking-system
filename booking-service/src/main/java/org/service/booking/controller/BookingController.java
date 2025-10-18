@@ -1,5 +1,6 @@
 package org.service.booking.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.service.booking.dto.BookingDTO;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/bookings")
 @RequiredArgsConstructor
+@Tag(name = "Bookings", description = "API для управления бронированием")
 public class BookingController {
 
     private final BookingService bookingService;
