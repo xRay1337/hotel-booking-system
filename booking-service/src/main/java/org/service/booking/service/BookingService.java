@@ -83,10 +83,7 @@ public class BookingService {
      */
     public Booking confirmBooking(Long bookingId) {
         Booking booking = getBookingById(bookingId);
-        log.info("Attempting to confirm booking ID: {}, Room: {}, Dates: {} to {}",
-                bookingId, booking.getRoomId(), booking.getStartDate(), booking.getEndDate());
 
-        // Проверяем, что бронирование в статусе PENDING
         if (booking.getStatus() != Booking.BookingStatus.PENDING) {
             throw new RuntimeException("Booking is not in PENDING status. Current status: " + booking.getStatus());
         }
@@ -107,12 +104,12 @@ public class BookingService {
             // Если успешно - подтверждаем бронирование
             booking.setStatus(Booking.BookingStatus.CONFIRMED);
             Booking confirmedBooking = bookingRepository.save(booking);
-            log.info("✅ Booking confirmed with ID: {}", bookingId);
+            log.info("Booking confirmed with ID: {}", bookingId);
 
             return confirmedBooking;
 
         } catch (Exception e) {
-            log.error("❌ Error confirming booking ID: {}", bookingId, e);
+            log.error("Error confirming booking ID: {}", bookingId, e);
 
             // При ошибке - отменяем бронирование
             booking.setStatus(Booking.BookingStatus.CANCELLED);
@@ -121,10 +118,15 @@ public class BookingService {
 
             // Пытаемся освободить номер в Hotel Service (компенсирующее действие)
             try {
-                hotelServiceClient.releaseRoom(booking.getRoomId());
-                log.info("🔓 Room released for booking ID: {}", bookingId);
+                // Создаем запрос для освобождения номера
+                RoomAvailabilityRequest releaseRequest = RoomAvailabilityRequest.builder()
+                        .correlationId(booking.getCorrelationId()) // важно передать correlationId
+                        .build();
+
+                hotelServiceClient.releaseRoom(booking.getRoomId(), releaseRequest); // ← передаем request
+                log.info("Room released for booking ID: {}", bookingId);
             } catch (Exception ex) {
-                log.error("⚠️ Failed to release room for booking ID {}: {}", bookingId, ex.getMessage());
+                log.error("Failed to release room for booking ID {}: {}", bookingId, ex.getMessage());
             }
 
             throw new RuntimeException("Failed to confirm booking: " + e.getMessage());
@@ -145,10 +147,10 @@ public class BookingService {
         // Шаг 2: Пытаемся подтвердить бронирование
         try {
             Booking confirmedBooking = confirmBooking(pendingBooking.getId());
-            log.info("✅ Booking saga completed successfully. Booking ID: {}", confirmedBooking.getId());
+            log.info("Booking saga completed successfully. Booking ID: {}", confirmedBooking.getId());
             return confirmedBooking;
         } catch (Exception e) {
-            log.error("❌ Booking saga failed. Booking ID: {}", pendingBooking.getId(), e);
+            log.error("Booking saga failed. Booking ID: {}", pendingBooking.getId(), e);
             // Бронирование уже отменено в методе confirmBooking
             throw new RuntimeException("Booking failed: " + e.getMessage());
         }

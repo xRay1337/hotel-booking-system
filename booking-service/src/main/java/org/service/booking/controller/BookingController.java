@@ -25,7 +25,7 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final BookingMapper bookingMapper;
-    private final UserService userService; // Добавляем UserService
+    private final UserService userService;
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")

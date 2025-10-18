@@ -38,7 +38,7 @@ public class HotelController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")  // ← Только ADMIN может создавать отели
+//    @PreAuthorize("hasRole('ADMIN')")  // ← Только ADMIN может создавать отели
     public ResponseEntity<HotelDTO> createHotel(@RequestBody CreateHotelRequest request) {
         Hotel hotel = hotelMapper.toEntity(request);
         Hotel createdHotel = hotelService.createHotel(hotel);
@@ -58,4 +58,6 @@ public class HotelController {
         hotelService.deleteHotel(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }

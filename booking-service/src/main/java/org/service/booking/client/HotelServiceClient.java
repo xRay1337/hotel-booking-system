@@ -14,27 +14,28 @@ public class HotelServiceClient {
 
     private final WebClient webClient;
 
-    public HotelServiceClient(@Value("${client.hotel-service.url:http://localhost:8081}") String hotelServiceUrl) {
+    public HotelServiceClient(@Value("${client.hotel-service.url:http://localhost:8080}") String gatewayUrl) {
         this.webClient = WebClient.builder()
-                .baseUrl(hotelServiceUrl)
+                .baseUrl(gatewayUrl) // ← Указываем Gateway URL вместо прямого
                 .build();
     }
 
-    public Mono<RoomDTO> confirmRoomAvailability(Long roomId, RoomAvailabilityRequest request) {
+    public Mono<Boolean> confirmRoomAvailability(Long roomId, RoomAvailabilityRequest request) {
         return webClient.post()
-                .uri("/api/rooms/{id}/confirm-availability", roomId)
+                .uri("/api/rooms/{id}/confirm-room-availability", roomId) // ← Через Gateway с /api
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(HttpStatus.CONFLICT::equals, response ->
                         Mono.error(new RuntimeException("Room is not available")))
-                .bodyToMono(RoomDTO.class)
+                .bodyToMono(Boolean.class)
                 .onErrorMap(WebClientResponseException.class, ex ->
                         new RuntimeException("Hotel Service error: " + ex.getResponseBodyAsString()));
     }
 
-    public Mono<Void> releaseRoom(Long roomId) {
+    public Mono<Void> releaseRoom(Long roomId, RoomAvailabilityRequest request) {
         return webClient.post()
-                .uri("/api/rooms/{id}/release", roomId)
+                .uri("/api/rooms/{id}/release-room", roomId) // ← Через Gateway с /api
+                .bodyValue(request)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .onErrorMap(WebClientResponseException.class, ex ->
@@ -43,7 +44,7 @@ public class HotelServiceClient {
 
     public Mono<RoomDTO> getRoomById(Long roomId) {
         return webClient.get()
-                .uri("/api/rooms/{id}", roomId)
+                .uri("/api/rooms/{id}", roomId) // ← Через Gateway с /api
                 .retrieve()
                 .bodyToMono(RoomDTO.class)
                 .onErrorMap(WebClientResponseException.class, ex ->

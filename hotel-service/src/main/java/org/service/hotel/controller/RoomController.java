@@ -4,12 +4,15 @@ import org.service.hotel.dto.CreateRoomRequest;
 import org.service.hotel.dto.RoomAvailabilityRequest;
 import org.service.hotel.dto.RoomDTO;
 import org.service.hotel.entity.Room;
+import org.service.hotel.entity.RoomBooking;
 import org.service.hotel.mapper.RoomMapper;
 import org.service.hotel.service.RoomService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,19 +93,65 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-    // Внутренние эндпоинты для Booking Service
-    @PostMapping("/{id}/confirm-availability")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Для бронирований (USER и ADMIN)
-    public ResponseEntity<RoomDTO> confirmAvailability(@PathVariable Long id,
-                                                       @RequestBody RoomAvailabilityRequest request) {
-        Room room = roomService.confirmAvailability(id, request);  // ← Передать request
-        return ResponseEntity.ok(roomMapper.toDTO(room));
-    }
-
     @PostMapping("/{id}/release")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")  // ← Для отмены бронирований (USER и ADMIN)
     public ResponseEntity<RoomDTO> releaseRoom(@PathVariable Long id) {
         Room room = roomService.releaseRoom(id);
         return ResponseEntity.ok(roomMapper.toDTO(room));
+    }
+
+    @GetMapping("/available/dates")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<List<RoomDTO>> getAvailableRoomsForDates(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
+        List<RoomDTO> rooms = roomService.getAvailableRoomsForDates(startDate, endDate).stream()
+                .map(roomMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(rooms);
+    }
+
+    @GetMapping("/recommend/dates")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<List<RoomDTO>> getRecommendedRoomsForDates(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
+        List<RoomDTO> rooms = roomService.getRecommendedRoomsForDates(startDate, endDate).stream()
+                .map(roomMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(rooms);
+    }
+
+    // Внутренние эндпоинты для Booking Service - обновляем
+    @PostMapping("/{id}/confirm-room-availability")
+    public ResponseEntity<Boolean> confirmRoomAvailability(
+            @PathVariable Long id,
+            @RequestBody RoomAvailabilityRequest request) {
+
+        try {
+            boolean isAvailable = roomService.isRoomAvailableForDates(id, request.getStartDate(), request.getEndDate());
+
+            if (isAvailable) {
+                RoomBooking temporaryBooking = roomService.createTemporaryBooking(
+                        id, request.getStartDate(), request.getEndDate(), request.getCorrelationId());
+                return ResponseEntity.ok(true);
+            } else {
+                return ResponseEntity.ok(false);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
+    @PostMapping("/{id}/release-room")
+    public ResponseEntity<Void> releaseRoom(
+            @PathVariable Long id,
+            @RequestBody RoomAvailabilityRequest request) {
+        try {
+            roomService.cancelBookingByCorrelationId(request.getCorrelationId());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

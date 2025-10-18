@@ -50,7 +50,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authz -> authz
                         // ВСЕГДА ПЕРВЫЕ - публичные эндпоинты
-                        .requestMatchers(HttpMethod.POST, "/user/register", "/user/auth").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/register", "/user/auth", "/api/user/register", "/api/user/auth").permitAll()
                         // Actuator
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         // Бронирования - для USER и ADMIN
@@ -59,9 +59,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/bookings/**").hasAnyRole("USER", "ADMIN")
                         // Админские эндпоинты пользователей (кроме /register и /auth)
                         .requestMatchers(HttpMethod.GET, "/user").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/user/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/user/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/user/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/user/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/user/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/user/*").hasRole("ADMIN")
                         // Все остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )
