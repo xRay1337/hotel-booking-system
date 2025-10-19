@@ -7,6 +7,7 @@ import org.service.booking.dto.UserDTO;
 import org.service.booking.entity.User;
 import org.service.booking.repository.UserRepository;
 import org.service.booking.config.JwtTokenProvider;
+import org.service.booking.util.CorrelationContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

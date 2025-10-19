@@ -9,6 +9,7 @@ import org.service.booking.entity.Booking;
 import org.service.booking.mapper.BookingMapper;
 import org.service.booking.service.BookingService;
 import org.service.booking.service.UserService;
+import org.service.booking.util.CorrelationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class BookingController {
     @PostMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDTO> createBooking(@RequestBody CreateBookingRequest request) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         log.info("Creating booking for user ID: {}, room ID: {}", request.getUserId(), request.getRoomId());
 
         try {
@@ -61,6 +63,7 @@ public class BookingController {
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<BookingDTO>> getUserBookings() {
+        CorrelationContext.initCorrelationIdIfAbsent();
         List<BookingDTO> bookings = bookingService.getAllBookings().stream()
                 .map(bookingMapper::toDTO)
                 .collect(Collectors.toList());
@@ -70,6 +73,7 @@ public class BookingController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDTO> getBooking(@PathVariable Long id) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         try {
             Booking booking = bookingService.getBookingById(id);
             return ResponseEntity.ok(bookingMapper.toDTO(booking));
@@ -82,6 +86,7 @@ public class BookingController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         try {
             bookingService.cancelBooking(id);
             log.info("Booking cancelled: {}", id);
@@ -95,6 +100,7 @@ public class BookingController {
     @PostMapping("/{id}/confirm")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDTO> confirmBooking(@PathVariable Long id) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         try {
             Booking confirmedBooking = bookingService.confirmBooking(id);
             return ResponseEntity.ok(bookingMapper.toDTO(confirmedBooking));
@@ -107,6 +113,7 @@ public class BookingController {
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<BookingDTO>> getAllBookings() {
+        CorrelationContext.initCorrelationIdIfAbsent();
         List<BookingDTO> bookings = bookingService.getAllBookings().stream()
                 .map(bookingMapper::toDTO)
                 .collect(Collectors.toList());

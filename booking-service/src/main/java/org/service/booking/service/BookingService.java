@@ -10,6 +10,7 @@ import org.service.booking.entity.Booking;
 import org.service.booking.entity.User;
 import org.service.booking.mapper.BookingMapper;
 import org.service.booking.repository.BookingRepository;
+import org.service.booking.util.CorrelationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

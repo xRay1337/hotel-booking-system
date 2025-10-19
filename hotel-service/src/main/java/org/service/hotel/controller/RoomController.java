@@ -7,6 +7,7 @@ import org.service.hotel.entity.Room;
 import org.service.hotel.entity.RoomBooking;
 import org.service.hotel.mapper.RoomMapper;
 import org.service.hotel.service.RoomService;
+import org.service.hotel.util.CorrelationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -147,6 +148,7 @@ public class RoomController {
     public ResponseEntity<Void> releaseRoom(
             @PathVariable Long id,
             @RequestBody RoomAvailabilityRequest request) {
+
         try {
             roomService.cancelBookingByCorrelationId(request.getCorrelationId());
             return ResponseEntity.ok().build();

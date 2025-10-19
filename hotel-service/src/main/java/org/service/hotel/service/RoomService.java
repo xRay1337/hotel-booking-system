@@ -7,6 +7,7 @@ import org.service.hotel.entity.RoomBooking;
 import org.service.hotel.exception.RoomNotAvailableException;
 import org.service.hotel.repository.RoomBookingRepository;
 import org.service.hotel.repository.RoomRepository;
+import org.service.hotel.util.CorrelationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +25,17 @@ public class RoomService {
     private final RoomBookingRepository roomBookingRepository;
 
     public List<Room> getAllRooms() {
+        CorrelationContext.initCorrelationIdIfAbsent();
         return roomRepository.findAll();
     }
 
     public List<Room> getRoomsByHotelId(Long hotelId) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         return roomRepository.findByHotelId(hotelId);
     }
 
     public List<Room> getAvailableRooms() {
+        CorrelationContext.initCorrelationIdIfAbsent();
         return roomRepository.findByAvailableTrue();
     }
 
@@ -40,17 +44,20 @@ public class RoomService {
     }
 
     public Room getRoomById(Long id) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         return roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found with id: " + id));
     }
 
     public Room createRoom(Room room) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         // Проверяем, что отель существует
         hotelService.getHotelById(room.getHotel().getId());
         return roomRepository.save(room);
     }
 
     public Room updateRoom(Long id, Room roomDetails) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         Room room = getRoomById(id);
         room.setNumber(roomDetails.getNumber());
         room.setType(roomDetails.getType());
@@ -60,11 +67,13 @@ public class RoomService {
     }
 
     public void deleteRoom(Long id) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         Room room = getRoomById(id);
         roomRepository.delete(room);
     }
 
     public Room confirmAvailability(Long roomId, RoomAvailabilityRequest request) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         Room room = getRoomById(roomId);
 
         // Проверяем базовую доступность номера
@@ -93,6 +102,7 @@ public class RoomService {
     }
 
     public Room releaseRoom(Long roomId) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         Room room = getRoomById(roomId);
         // Снимаем временную блокировку
         // В реальной системе здесь разблокировали бы даты в кэше
@@ -105,6 +115,7 @@ public class RoomService {
      * Подтверждает бронирование (PENDING → CONFIRMED)
      */
     public RoomBooking confirmBooking(Long bookingId) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         RoomBooking booking = roomBookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
@@ -131,6 +142,7 @@ public class RoomService {
      * Отменяет бронирование
      */
     public RoomBooking cancelBooking(Long bookingId) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         RoomBooking booking = roomBookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
@@ -139,6 +151,7 @@ public class RoomService {
     }
 
     public boolean isRoomAvailableForDates(Long roomId, LocalDate startDate, LocalDate endDate) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         // Валидация дат
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start date and end date cannot be null");
@@ -169,6 +182,7 @@ public class RoomService {
      * Создает временную бронь (PENDING статус)
      */
     public RoomBooking createTemporaryBooking(Long roomId, LocalDate startDate, LocalDate endDate, String correlationId) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         Room room = getRoomById(roomId);
 
         if (!isRoomAvailableForDates(roomId, startDate, endDate)) {
@@ -192,6 +206,7 @@ public class RoomService {
      * Отменяет бронирование по correlationId
      */
     public void cancelBookingByCorrelationId(String correlationId) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         roomBookingRepository.findAll().stream()
                 .filter(booking -> correlationId.equals(booking.getCorrelationId()))
                 .filter(booking -> booking.getStatus() == RoomBooking.BookingStatus.PENDING)
@@ -205,6 +220,7 @@ public class RoomService {
      * Получает доступные номера для указанных дат
      */
     public List<Room> getAvailableRoomsForDates(LocalDate startDate, LocalDate endDate) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         return roomRepository.findByAvailableTrue().stream()
                 .filter(room -> isRoomAvailableForDates(room.getId(), startDate, endDate))
                 .collect(Collectors.toList());
@@ -214,6 +230,7 @@ public class RoomService {
      * Получает рекомендованные номера для указанных дат
      */
     public List<Room> getRecommendedRoomsForDates(LocalDate startDate, LocalDate endDate) {
+        CorrelationContext.initCorrelationIdIfAbsent();
         return getAvailableRoomsForDates(startDate, endDate).stream()
                 .sorted((r1, r2) -> {
                     // Сначала по times_booked (меньше бронирований - выше в списке)

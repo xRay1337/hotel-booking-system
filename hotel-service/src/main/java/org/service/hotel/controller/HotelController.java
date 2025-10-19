@@ -6,6 +6,7 @@ import org.service.hotel.dto.HotelDTO;
 import org.service.hotel.entity.Hotel;
 import org.service.hotel.mapper.HotelMapper;
 import org.service.hotel.service.HotelService;
+import org.service.hotel.util.CorrelationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
