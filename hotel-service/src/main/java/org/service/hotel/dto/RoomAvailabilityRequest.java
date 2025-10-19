@@ -12,5 +12,5 @@ import java.time.LocalDate;
 public class RoomAvailabilityRequest {
     private LocalDate startDate;
     private LocalDate endDate;
-    private String correlationId; // для идемпотентности
+    private String correlationId;
 }

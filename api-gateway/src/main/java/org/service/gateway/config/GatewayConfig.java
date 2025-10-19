@@ -11,11 +11,16 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Hotel Service routes - ВОЗВРАЩАЕМ /api
+                // Hotel Service routes
                 .route("hotel-service", r -> r
-                        .path("/api/hotels/**", "/api/rooms/**")  // ← С /api
+                        .path("/api/hotels/**", "/api/rooms/**", "/api/hotel/debug/**")
                         .uri("lb://HOTEL-SERVICE"))
-                // Booking Service routes
+                // Booking Service API routes
+                .route("booking-service-api", r -> r
+                        .path("/api/user/**", "/api/bookings/**", "/api/debug/**")
+                        .filters(f -> f.rewritePath("/api/(?<segment>.*)", "/${segment}"))
+                        .uri("lb://BOOKING-SERVICE"))
+                // Booking Service legacy routes
                 .route("booking-service", r -> r
                         .path("/bookings/**")
                         .uri("lb://BOOKING-SERVICE"))

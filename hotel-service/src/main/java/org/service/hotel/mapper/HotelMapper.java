@@ -13,9 +13,5 @@ public interface HotelMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rooms", ignore = true)
-    Hotel toEntity(HotelDTO hotelDTO);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "rooms", ignore = true)
     Hotel toEntity(CreateHotelRequest request);
 }

@@ -6,7 +6,7 @@ import org.service.booking.dto.AuthResponse;
 import org.service.booking.dto.UserDTO;
 import org.service.booking.entity.User;
 import org.service.booking.service.UserService;
-import org.service.booking.mapper.UserMapper; // Добавлен импорт маппера
+import org.service.booking.mapper.UserMapper;
 import org.service.booking.util.CorrelationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +22,6 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
 
-    // Публичные эндпоинты (без аутентификации)
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest request) {
         CorrelationContext.initCorrelationIdIfAbsent();
@@ -39,7 +38,7 @@ public class UserController {
 
     // Защищенные эндпоинты (только для ADMIN)
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         CorrelationContext.initCorrelationIdIfAbsent();
         List<UserDTO> users = userService.getAllUsers();
@@ -47,7 +46,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         CorrelationContext.initCorrelationIdIfAbsent();
         User user = userService.getUserById(id);
@@ -56,7 +55,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody AuthRequest request) {
         CorrelationContext.initCorrelationIdIfAbsent();
         UserDTO user = userService.updateUser(id, request);
@@ -64,7 +63,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         CorrelationContext.initCorrelationIdIfAbsent();
         userService.deleteUser(id);

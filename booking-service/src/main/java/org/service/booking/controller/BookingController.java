@@ -31,7 +31,7 @@ public class BookingController {
     private final UserService userService;
 
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDTO> createBooking(@RequestBody CreateBookingRequest request) {
         CorrelationContext.initCorrelationIdIfAbsent();
         log.info("Creating booking for user ID: {}, room ID: {}", request.getUserId(), request.getRoomId());
@@ -61,7 +61,7 @@ public class BookingController {
 
     // Остальные методы без изменений...
     @GetMapping
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<BookingDTO>> getUserBookings() {
         CorrelationContext.initCorrelationIdIfAbsent();
         List<BookingDTO> bookings = bookingService.getAllBookings().stream()
@@ -71,7 +71,7 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDTO> getBooking(@PathVariable Long id) {
         CorrelationContext.initCorrelationIdIfAbsent();
         try {
@@ -84,7 +84,7 @@ public class BookingController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
         CorrelationContext.initCorrelationIdIfAbsent();
         try {
@@ -98,7 +98,7 @@ public class BookingController {
     }
 
     @PostMapping("/{id}/confirm")
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDTO> confirmBooking(@PathVariable Long id) {
         CorrelationContext.initCorrelationIdIfAbsent();
         try {
@@ -111,7 +111,7 @@ public class BookingController {
     }
 
     @GetMapping("/admin/all")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<BookingDTO>> getAllBookings() {
         CorrelationContext.initCorrelationIdIfAbsent();
         List<BookingDTO> bookings = bookingService.getAllBookings().stream()
