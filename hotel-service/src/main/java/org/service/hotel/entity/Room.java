@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "rooms")
 @Data
@@ -30,6 +32,9 @@ public class Room {
 
     @Column(name = "times_booked")
     private Integer timesBooked = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")

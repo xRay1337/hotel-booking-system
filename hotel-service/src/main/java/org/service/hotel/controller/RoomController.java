@@ -48,7 +48,7 @@ public class RoomController {
      */
     @PostMapping("/{id}/confirm-availability")
     public ResponseEntity<Boolean> confirmAvailability(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestBody RoomAvailabilityRequest request) {
 
         boolean available = roomService.confirmAvailability(id, request);
@@ -60,7 +60,7 @@ public class RoomController {
      * INTERNAL - маршрут не публикуется через Gateway
      */
     @PostMapping("/{id}/release")
-    public ResponseEntity<Void> releaseRoom(@PathVariable Long id) {
+    public ResponseEntity<Void> releaseRoom(@PathVariable("id") Long id) {
         roomService.releaseRoom(id);
         return ResponseEntity.ok().build();
     }
