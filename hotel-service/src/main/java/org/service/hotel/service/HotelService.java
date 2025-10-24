@@ -1,6 +1,8 @@
 package org.service.hotel.service;
 
 import lombok.RequiredArgsConstructor;
+import org.service.hotel.dto.CreateHotelRequest;
+import org.service.hotel.dto.HotelDTO;
 import org.service.hotel.entity.Hotel;
 import org.service.hotel.repository.HotelRepository;
 import org.springframework.stereotype.Service;
@@ -38,5 +40,9 @@ public class HotelService {
     public void deleteHotel(Long id) {
         Hotel hotel = getHotelById(id);
         hotelRepository.delete(hotel);
+    }
+
+    public Hotel createHotel(CreateHotelRequest request) {
+        return request.toHotel();
     }
 }

@@ -36,9 +36,8 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // Защищенные эндпоинты (только для ADMIN)
     @GetMapping
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         CorrelationContext.initCorrelationIdIfAbsent();
         List<UserDTO> users = userService.getAllUsers();
@@ -46,16 +45,16 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         CorrelationContext.initCorrelationIdIfAbsent();
         User user = userService.getUserById(id);
-        UserDTO userDTO = userMapper.toDTO(user); // Теперь маппер доступен
+        UserDTO userDTO = userMapper.toDTO(user);
         return ResponseEntity.ok(userDTO);
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody AuthRequest request) {
         CorrelationContext.initCorrelationIdIfAbsent();
         UserDTO user = userService.updateUser(id, request);
@@ -63,7 +62,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         CorrelationContext.initCorrelationIdIfAbsent();
         userService.deleteUser(id);

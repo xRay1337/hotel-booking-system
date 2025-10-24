@@ -7,6 +7,7 @@ import org.service.hotel.entity.Hotel;
 import org.service.hotel.mapper.HotelMapper;
 import org.service.hotel.service.HotelService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class HotelController {
     private final HotelMapper hotelMapper;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<HotelDTO> createHotel(@RequestBody CreateHotelRequest request) {
         Hotel hotel = hotelMapper.toEntity(request);
         Hotel createdHotel = hotelService.createHotel(hotel);
@@ -28,6 +30,7 @@ public class HotelController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<List<HotelDTO>> getAllHotels() {
         List<HotelDTO> hotels = hotelService.getAllHotels().stream()
                 .map(hotelMapper::toDTO)

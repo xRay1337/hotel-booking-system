@@ -2,6 +2,7 @@ package org.service.hotel.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.List;
 @Entity
 @Table(name = "hotels")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Hotel {

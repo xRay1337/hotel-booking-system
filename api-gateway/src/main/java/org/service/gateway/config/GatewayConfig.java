@@ -11,11 +11,9 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Hotel Service routes
                 .route("hotel-service", r -> r
                         .path("/api/hotels/**", "/api/rooms/**")
                         .uri("lb://HOTEL-SERVICE"))
-                // Booking Service routes
                 .route("booking-service", r -> r
                         .path("/api/user/**", "/api/bookings/**")
                         .uri("lb://BOOKING-SERVICE"))
