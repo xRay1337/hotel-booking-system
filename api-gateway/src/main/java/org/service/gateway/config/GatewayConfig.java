@@ -13,20 +13,11 @@ public class GatewayConfig {
         return builder.routes()
                 // Hotel Service routes
                 .route("hotel-service", r -> r
-                        .path("/api/hotels/**", "/api/rooms/**", "/api/hotel/debug/**")
+                        .path("/api/hotels/**", "/api/rooms/**")
                         .uri("lb://HOTEL-SERVICE"))
-                // Booking Service API routes
-                .route("booking-service-api", r -> r
-                        .path("/api/user/**", "/api/bookings/**", "/api/debug/**")
-                        .filters(f -> f.rewritePath("/api/(?<segment>.*)", "/${segment}"))
-                        .uri("lb://BOOKING-SERVICE"))
-                // Booking Service legacy routes
+                // Booking Service routes
                 .route("booking-service", r -> r
-                        .path("/bookings/**")
-                        .uri("lb://BOOKING-SERVICE"))
-                // Public auth endpoints
-                .route("booking-auth", r -> r
-                        .path("/user/**")
+                        .path("/api/user/**", "/api/bookings/**")
                         .uri("lb://BOOKING-SERVICE"))
                 .build();
     }
